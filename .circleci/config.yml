@@ -1,0 +1,105 @@
+orbs: 
+  slack: circleci/slack@3.4.2
+
+version: 2.1
+references:
+  working_directory: &working_directory ~/demo-swagger-rails
+  images:
+    base_image: &base_image
+      image: circleci/ruby:2.7.4-node
+      environment:
+        PGHOST: 127.0.0.1
+        BUNDLE_JOBS: 4
+        BUNDLE_RETRY: 3
+        BUNDLE_PATH: vendor/bundle
+        GEM_PATH: vendor/bundle
+        RAILS_ENV: test
+        DB_USER: postgres
+        DB_NAME: demo_swagger_rails_test
+        DB_HOST: localhost
+        DB_PASSWORD: postgres
+    db_image: &db_image
+      image: circleci/postgres:9.6.2-alpine
+      environment:
+        PGDATA: /dev/shm/pgdata/data
+        POSTGRES_DB: demo_swagger_rails_test
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+
+  commands:
+    install_libmcrypt: &install_libmcrypt
+      name: Install libmcrypt-dev
+      command: sudo apt-get install libmcrypt-dev
+    install_bunder: &install_bunder
+      name: Install Bundler
+      command: |
+        echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
+        source $BASH_ENV
+        gem install bundler
+    restore_bundle_cache: &restore_bundle_cache
+      restore_cache:
+        key: demo-swagger-rails-bundle-v4-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
+
+    persist_artifacts: &persist_artifacts
+      persist_to_workspace:
+        root: *working_directory
+        paths:
+          - ./*
+
+jobs:
+  build:
+    working_directory: *working_directory
+    docker:
+      - *base_image
+      - *db_image
+    steps:
+      - checkout
+      - run: *install_libmcrypt
+      - run: *install_bunder
+      - restore_cache:
+          name: Restore bundle cache
+          keys:
+            - demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
+      - run:
+          name: Run bundle install
+          command: bundle check || bundle install --clean
+      - save_cache:
+          name: Store bundle cache
+          key: demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - persist_to_workspace:
+          root: *working_directory
+          paths:
+            - ./*
+
+  test:
+    working_directory: *working_directory
+    docker:
+      - *base_image
+      - *db_image
+    steps:
+      - attach_workspace:
+          at: *working_directory
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Database setup
+          command: bundle exec rake db:schema:load --trace
+      - run:
+          name: Check Rubocop
+          command: bundle exec rubocop
+      - slack/status:
+          success_message: ':circleci-pass: $CIRCLE_BRANCH \n User：$CIRCLE_USERNAME'
+          failure_message: ':circleci-fail: $CIRCLE_BRANCH \n User：$CIRCLE_USERNAME'
+          webhook: $SLACK_WEBHOOK
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
