@@ -93,8 +93,8 @@ jobs:
           command: bundle exec rubocop
       - <<: *persist_artifacts
       - slack/status:
-          success_message: 'Success'
-          failure_message: 'Fail'
+          - success_message
+          - failure_message
           webhook: https://hooks.slack.com/services/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
 
 workflows:
