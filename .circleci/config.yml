@@ -61,7 +61,7 @@ jobs:
     steps:
       - checkout
       - run: *install_libmcrypt
-      - run: *setup_bundle
+      - setup_bundle
       # - run: mkdir -p ${CIRCLE_TEST_REPORTS}/rspec/
       - wait_for_db
       # - wait_for_redis
