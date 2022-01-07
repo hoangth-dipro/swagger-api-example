@@ -67,15 +67,6 @@ jobs:
       # - wait_for_redis
       - run: bundle exec rubocop
       - run: bundle exec rake db:schema:load
-      # - run: bundle exec rspec
-      # - store_test_results:
-      #     path: /tmp/test-results
-      # - store_artifacts:
-      #     path: /home/circleci/workspace/log/test.log
-      # - slack/status:
-      #     success_message: ':circleci-pass: $CIRCLE_BRANCH SUCCESS\n User：$CIRCLE_USERNAME'
-      #     failure_message: ':circleci-fail: $CIRCLE_BRANCH SUCCESS\n User：$CIRCLE_USERNAME'
-      #     webhook: https://hooks.slack.com/services/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
 
 workflows:
   version: 2
