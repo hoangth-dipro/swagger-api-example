@@ -46,7 +46,7 @@ references:
 
 version: 2
 jobs:
-  build_and_test:
+  build:
     working_directory: *working_directory
     docker:
       - *base_image
@@ -59,7 +59,6 @@ jobs:
           name: Restore bundle cache
           keys:
             - demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
-            - demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-
       - run:
           name: Run bundle install
           command: bundle check || bundle install --clean
@@ -80,11 +79,19 @@ jobs:
       - run:
           name: Database setup
           command: bundle exec rake db:schema:load --trace
+
+      - <<: *persist_artifacts
+
+  test:
+    working_directory: *working_directory
+    docker:
+      - *base_image
+      - *db_image
+    steps:
+      - build
       - run:
           name: Check Rubocop
           command: bundle exec rubocop 
-      - <<: *persist_artifacts
-
 
 workflows:
   version: 2
