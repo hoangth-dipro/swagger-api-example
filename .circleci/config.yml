@@ -23,7 +23,6 @@ references:
         POSTGRES_PASSWORD: postgres
 
   commands:
-  commands:
     install_libmcrypt: &install_libmcrypt
       name: Install libmcrypt-dev
       command: sudo apt-get install libmcrypt-dev
