@@ -74,10 +74,6 @@ jobs:
       - *base_image
       - *db_image
     steps:
-      - persist_to_workspace:
-          root: *working_directory
-          paths:
-            - ./*
       - attach_workspace:
           at: *working_directory
       - run:
