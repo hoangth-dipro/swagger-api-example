@@ -94,7 +94,7 @@ jobs:
       - slack/status:
           success_message: ':circleci-pass: $CIRCLE_BRANCH SUCCESSED\n User：$CIRCLE_USERNAME'
           failure_message: ':circleci-fail: $CIRCLE_BRANCH FAILED\n User：$CIRCLE_USERNAME'
-          webhook: https://hooks.slack.com/services/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
+          webhook: $SLACK_WEBHOOK
 
 workflows:
   version: 2
