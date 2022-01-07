@@ -93,8 +93,8 @@ jobs:
           command: bundle exec rubocop
       - <<: *persist_artifacts
       - slack/status:
-          success_message: ':circleci-pass: @here \n$CIRCLE_BRANCH CircleCI PASS\n User：$CIRCLE_USERNAME'
-          failure_message: ':circleci-fail: @here \n$CIRCLE_BRANCH CircleCI FAILD\n User：$CIRCLE_USERNAME'
+          success_message: ':circleci-pass: $CIRCLE_BRANCH CircleCI PASS\n User：$CIRCLE_USERNAME'
+          failure_message: ':circleci-fail: $CIRCLE_BRANCH CircleCI FAILD\n User：$CIRCLE_USERNAME'
           webhook: https://hooks.slack.com/services/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
 
 workflows:
