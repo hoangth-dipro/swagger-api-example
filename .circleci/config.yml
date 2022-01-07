@@ -67,7 +67,11 @@ jobs:
           key: demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
-
+      - persist_to_workspace:
+          root: *working_directory
+          paths:
+            - ./*
+      
   test:
     working_directory: *working_directory
     docker:
