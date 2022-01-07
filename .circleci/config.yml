@@ -1,3 +1,8 @@
+
+version: 2.1
+orbs:
+  slack: circleci/slack@3.4.2
+
 references:
   working_directory: &working_directory ~/demo-swagger-rails
   images:
@@ -26,14 +31,12 @@ references:
     install_libmcrypt: &install_libmcrypt
       name: Install libmcrypt-dev
       command: sudo apt-get install libmcrypt-dev
-
     install_bunder: &install_bunder
       name: Install Bundler
       command: |
         echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
         source $BASH_ENV
         gem install bundler
-
     restore_bundle_cache: &restore_bundle_cache
       restore_cache:
         key: demo-swagger-rails-bundle-v4-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
@@ -71,7 +74,7 @@ jobs:
           root: *working_directory
           paths:
             - ./*
-      
+
   test:
     working_directory: *working_directory
     docker:
@@ -90,11 +93,13 @@ jobs:
           name: Check Rubocop
           command: bundle exec rubocop
       - <<: *persist_artifacts
-
+      - slack/status:
+          success_message: ':circleci-pass: @here \n$CIRCLE_BRANCH CircleCI PASS\n User：$CIRCLE_USERNAME'
+          failure_message: ':circleci-fail: @here \n$CIRCLE_BRANCH CircleCI FAILD\n User：$CIRCLE_USERNAME'
+          webhook: https://hooks.slack.com/services/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
 
 workflows:
   version: 2
-
   workflow:
     jobs:
       - build
