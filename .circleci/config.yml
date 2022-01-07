@@ -55,6 +55,9 @@ references:
 version: 2
 jobs:
   build_and_test:
+    docker:
+      - *base_image
+      - *db_image
     steps:
       - checkout
       - setup_bundle
