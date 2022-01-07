@@ -1,0 +1,81 @@
+references:
+  working_directory: &working_directory ~/demo-swagger-rails
+  images:
+    base_image: &base_image
+      image: circleci/ruby:2.7.4-node
+      environment:
+        PGHOST: 127.0.0.1
+        BUNDLE_JOBS: 4
+        BUNDLE_RETRY: 3
+        BUNDLE_PATH: vendor/bundle
+        GEM_PATH: vendor/bundle
+        RAILS_ENV: test
+        DB_USER: postgres
+        DB_NAME: demo_swagger_rails_test
+        DB_HOST: localhost
+        DB_PASSWORD: postgres
+    db_image: &db_image
+      image: circleci/postgres:9.6.2-alpine
+      environment:
+        PGDATA: /dev/shm/pgdata/data
+        POSTGRES_DB: demo_swagger_rails_test
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+
+  commands:
+    install_libmcrypt: &install_libmcrypt
+      name: Install libmcrypt-dev
+      command: sudo apt-get install libmcrypt-dev
+
+    setup_bundle:
+      steps:
+        restore_cache:
+          key: demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
+        run:
+          name: install dependencies
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+        save_cache:
+          key: demo-swagger-rails-bundle-{{ checksum ".ruby-version" }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+    wait_for_db:
+      steps:
+        run:
+          name: Wait for DB
+          command: dockerize -wait tcp://127.0.0.1:5432 -timeout 1m
+
+    # persist_artifacts: &persist_artifacts
+    #   persist_to_workspace:
+    #     root: *working_directory
+    #     paths:
+    #       - ./*
+
+version: 2
+jobs:
+  build_and_test:
+    steps:
+      - checkout
+      - setup_bundle
+      # - run: mkdir -p ${CIRCLE_TEST_REPORTS}/rspec/
+      - wait_for_db
+      # - wait_for_redis
+      - run: bundle exec rubocop
+      - run: bundle exec rake db:schema:load
+      # - run: bundle exec rspec
+      # - store_test_results:
+      #     path: /tmp/test-results
+      # - store_artifacts:
+      #     path: /home/circleci/workspace/log/test.log
+      # - slack/status:
+      #     success_message: ':circleci-pass: $CIRCLE_BRANCH SUCCESS\n User：$CIRCLE_USERNAME'
+      #     failure_message: ':circleci-fail: $CIRCLE_BRANCH SUCCESS\n User：$CIRCLE_USERNAME'
+      #     webhook: https://hooks.slack.com/services/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
+
+workflows:
+  version: 2
+
+  workflow:
+    jobs:
+      - build_and_test
