@@ -60,7 +60,8 @@ jobs:
       - *db_image
     steps:
       - checkout
-      - setup_bundle
+      - run: *install_libmcrypt
+      - run: *setup_bundle
       # - run: mkdir -p ${CIRCLE_TEST_REPORTS}/rspec/
       - wait_for_db
       # - wait_for_redis
