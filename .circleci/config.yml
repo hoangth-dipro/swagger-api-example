@@ -1,8 +1,8 @@
 
-version: 2.1
-orbs:
+orbs: 
   slack: circleci/slack@3.4.2
 
+version: 2.1
 references:
   working_directory: &working_directory ~/demo-swagger-rails
   images:
@@ -91,10 +91,10 @@ jobs:
       - run:
           name: Check Rubocop
           command: bundle exec rubocop
-      - <<: *persist_artifacts
+      # - <<: *persist_artifacts
       - slack/status:
-          # success_message
-          # failure_message
+          success_message: "Success"
+          failure_message: "Fail"
           webhook: https://hooks.slack.com/services/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
 
 workflows:
